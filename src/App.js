@@ -4,16 +4,39 @@ import { Container, Navbar, Nav } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import './App.css';
 import Routes from './Routes';
+import { Auth } from "aws-amplify";
 
 class App extends Component {
   state = {
     isAuthenticated: false,
+    isAuthenticating: true,
   }
 
   userHasAuthenticated = authenticated => {
     this.setState({
       isAuthenticated: authenticated
     })
+  }
+
+  componentDidMount = async () => {
+    try {
+      await Auth.currentSession()
+      this.userHasAuthenticated(true)
+    } catch (e) {
+      console.log(e.message)
+    }
+
+    this.setState({ isAuthenticating: false })
+  }
+
+  handleLogout = async () => {
+    try {
+      await Auth.signOut()
+      this.userHasAuthenticated(false)
+    } catch (e) {
+      console.log(e)
+      alert(e.message)
+    }
   }
 
   render() {
@@ -23,6 +46,7 @@ class App extends Component {
     }
 
     return (
+      !this.state.isAuthenticating &&
       <Container className="App">
         <Navbar bg="light" fluid="true" collapseOnSelect>
           <Navbar.Brand>
@@ -32,10 +56,8 @@ class App extends Component {
           <Navbar.Collapse className="justify-content-end" >
             <Nav>
               {this.state.isAuthenticated
-                ? <Nav.Item>
-                  <LinkContainer to="/logout">
-                    <Nav.Link>Logout</Nav.Link>
-                  </LinkContainer>
+                ? <Nav.Item onClick={this.handleLogout}>
+                  <Nav.Link>Logout</Nav.Link>
                 </Nav.Item>
                 : <Fragment>
                   <Nav.Item>

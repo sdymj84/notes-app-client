@@ -1,12 +1,15 @@
 import React, { Component } from 'react'
-import { Form, Row, Col, Button, Container } from "react-bootstrap";
+import { Form, Row, Col, Container } from "react-bootstrap";
 import './Login.css'
 import { Auth } from "aws-amplify";
+import { Redirect } from "react-router-dom";
+import LoaderButton from "../components/LoaderButton";
 
 export class Login extends Component {
   state = {
     email: "",
     password: "",
+    isLoading: false,
   }
 
   validateForm() {
@@ -22,17 +25,24 @@ export class Login extends Component {
   handleSubmit = async (e) => {
     e.preventDefault()
 
+    this.setState({ isLoading: true })
+
     try {
       const user = await Auth.signIn(this.state.email, this.state.password)
       this.props.userHasAuthenticated(true)
       console.log(user)
     } catch (e) {
+      console.log(e.message)
       alert(e.message)
+      this.setState({ isLoading: false })
     }
   }
 
   render() {
-    console.log(this.props)
+    if (this.props.isAuthenticated) {
+      return <Redirect to='/' />
+    }
+
     return (
       <Container className="Login">
         <Form onSubmit={this.handleSubmit}>
@@ -61,11 +71,16 @@ export class Login extends Component {
 
           <Form.Group as={Row}>
             <Col sm={{ span: 10, offset: 2 }}>
-              <Button type="submit"
-                variant="outline-secondary"
+              <LoaderButton
                 block
+                variant="outline-secondary"
                 disabled={!this.validateForm()}
-              >Log in</Button>
+                type="submit"
+                isLoading={this.state.isLoading}
+                text="Login"
+                loadingText="Logging in…"
+              />
+
             </Col>
           </Form.Group>
         </Form>

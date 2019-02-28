@@ -9,12 +9,7 @@ export class Home extends Component {
 
   state = {
     isLoading: true,
-    notes: [
-      "Cras justo odio",
-      "Dapibus ac facilisis",
-      "Morbi leo risus",
-      "Porta ac consectetur ac",
-    ],
+    notes: [],
   }
 
   componentDidMount = async () => {

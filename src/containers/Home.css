@@ -11,3 +11,16 @@
 .Home .lander p {
   color: #999;
 }
+
+.notes {
+  margin-top: 2em;
+}
+
+.plus {
+  position: relative;
+  top: 1.8px;
+}
+
+.date {
+  font-size: 0.8em;
+}

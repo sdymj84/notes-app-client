@@ -3,12 +3,18 @@ import config from '../config'
 import { Form, Container } from "react-bootstrap";
 import './NewNote.css'
 import LoaderButton from "../components/LoaderButton";
+import { API } from "aws-amplify";
+import { s3Upload } from "../libs/awsLib";
 
 export class NewNote extends Component {
 
   constructor(props) {
     super(props)
+
+    // We use a class property instead of saving it in the state 
+    // because the file object we save does not change or drive the rendering of our component.
     this.file = null
+
     this.state = {
       isLoading: "",
       content: "",
@@ -31,10 +37,34 @@ export class NewNote extends Component {
 
   handleSubmit = async (e) => {
     e.preventDefault()
+
     if (this.file && this.file.size > config.MAX_ATTACHMENT_SIZE) {
-      alert("")
+      alert(`Please pick a file smaller than ${config.MAX_ATTACHMENT_SIZE / 1000000} MB.`)
+      return
     }
 
+    this.setState({ isLoading: true })
+
+    // create note
+    try {
+      const attachment = this.file
+        ? await s3Upload(this.file)
+        : null
+
+      const result = await API.post('notes', '/notes', {
+        body: {
+          attachment,
+          content: this.state.content
+        }
+      })
+
+      console.log(result)
+      this.props.history.push('/')
+    } catch (e) {
+      console.log(e.message)
+      alert(e.message)
+      this.setState({ isLoading: false })
+    }
   }
 
   render() {
@@ -67,3 +97,4 @@ export class NewNote extends Component {
 }
 
 export default NewNote
+

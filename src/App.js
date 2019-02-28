@@ -56,9 +56,16 @@ class App extends Component {
           <Navbar.Collapse className="justify-content-end" >
             <Nav>
               {this.state.isAuthenticated
-                ? <Nav.Item onClick={this.handleLogout}>
-                  <Nav.Link>Logout</Nav.Link>
-                </Nav.Item>
+                ? <Fragment>
+                  <Nav.Item>
+                    <LinkContainer to="/notes/new">
+                      <Nav.Link>New Note</Nav.Link>
+                    </LinkContainer>
+                  </Nav.Item>
+                  <Nav.Item onClick={this.handleLogout}>
+                    <Nav.Link>Logout</Nav.Link>
+                  </Nav.Item>
+                </Fragment>
                 : <Fragment>
                   <Nav.Item>
                     <LinkContainer to="/signup">

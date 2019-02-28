@@ -1,13 +1,41 @@
-import React, { Component } from 'react'
+import React, { Component, Fragment } from 'react'
 import { Redirect } from "react-router-dom";
+import { Container, ListGroup } from "react-bootstrap";
+import { API } from "aws-amplify";
+import { GoPlus } from "react-icons/go";
 import "./Home.css"
 
 export class Home extends Component {
-  render() {
+
+  state = {
+    isLoading: true,
+    notes: [
+      "Cras justo odio",
+      "Dapibus ac facilisis",
+      "Morbi leo risus",
+      "Porta ac consectetur ac",
+    ],
+  }
+
+  componentDidMount = async () => {
     if (!this.props.isAuthenticated) {
-      return <Redirect to='/login' />
+      return
     }
 
+    try {
+      const notes = await API.get('notes', `/notes`)
+      notes.sort((a, b) => a.createdAt < b.createdAt
+        ? 1 : ((b.createdAt < a.createdAt) ? -1 : 0))
+      this.setState({ notes }, () => console.log(this.state.notes))
+    } catch (e) {
+      console.log(e.message)
+      alert(e.message)
+    }
+
+    this.setState({ isLoading: false })
+  }
+
+  renderLander() {
     return (
       <div className="Home">
         <div className="lander">
@@ -16,6 +44,48 @@ export class Home extends Component {
         </div>
       </div>
     )
+  }
+
+  renderNotesList(notes) {
+    return (
+      <Fragment>
+        <ListGroup.Item
+          variant='light'
+          action href='/notes/new'
+        ><GoPlus className="plus" /> Create a new note</ListGroup.Item>
+        {notes.map((note, i) =>
+          <ListGroup.Item
+            key={note.noteId}
+            variant='light'
+            action href={`/notes/${note.noteId}`}
+          >{note.content.split('\n')[0]}<br />
+            <span className='date'>Created at : {new Date(note.createdAt).toLocaleString()}</span>
+          </ListGroup.Item>
+        )}
+      </Fragment>
+    )
+  }
+
+  renderNotes() {
+    return (
+      <Container className="notes">
+        <h1>Your Notes</h1>
+        <hr />
+        <ListGroup>
+          {!this.state.isLoading && this.renderNotesList(this.state.notes)}
+        </ListGroup>
+      </Container>
+    )
+  }
+
+  render() {
+    if (!this.props.isAuthenticated) {
+      return <Redirect to='/login' />
+    }
+
+    return this.props.isAuthenticated
+      ? this.renderNotes()
+      : this.renderLander()
   }
 }
 

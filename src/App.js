@@ -34,8 +34,8 @@ class App extends Component {
       await Auth.signOut()
       this.userHasAuthenticated(false)
     } catch (e) {
-      console.log(e)
-      alert(e.message)
+      console.log(e.response)
+      alert(e.response.data.error)
     }
   }
 
@@ -56,16 +56,9 @@ class App extends Component {
           <Navbar.Collapse className="justify-content-end" >
             <Nav>
               {this.state.isAuthenticated
-                ? <Fragment>
-                  <Nav.Item>
-                    <LinkContainer to="/notes/new">
-                      <Nav.Link>New Note</Nav.Link>
-                    </LinkContainer>
-                  </Nav.Item>
-                  <Nav.Item onClick={this.handleLogout}>
-                    <Nav.Link>Logout</Nav.Link>
-                  </Nav.Item>
-                </Fragment>
+                ? < Nav.Item onClick={this.handleLogout}>
+                  <Nav.Link>Logout</Nav.Link>
+                </Nav.Item>
                 : <Fragment>
                   <Nav.Item>
                     <LinkContainer to="/signup">
@@ -82,7 +75,7 @@ class App extends Component {
           </Navbar.Collapse>
         </Navbar>
         <Routes childProps={childProps} />
-      </Container>
+      </Container >
     );
   }
 }

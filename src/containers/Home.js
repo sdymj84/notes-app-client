@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react'
-import { Redirect } from "react-router-dom";
-import { Container, ListGroup } from "react-bootstrap";
+import { Redirect, Link } from "react-router-dom";
+import { Container, ListGroup, Button } from "react-bootstrap";
 import { API } from "aws-amplify";
 import { GoPlus } from "react-icons/go";
 import "./Home.css"
@@ -23,8 +23,7 @@ export class Home extends Component {
         ? 1 : ((b.createdAt < a.createdAt) ? -1 : 0))
       this.setState({ notes }, () => console.log(this.state.notes))
     } catch (e) {
-      console.log(e.message)
-      alert(e.message)
+      console.log(e.response)
     }
 
     this.setState({ isLoading: false })
@@ -36,6 +35,19 @@ export class Home extends Component {
         <div className="lander">
           <h1>Scratch</h1>
           <p>A Simple Note Taking App</p>
+          <div>
+            <Link to='/login'>
+              <Button
+                className="auth-button"
+                variant='success'
+              >Login</Button>
+            </Link>
+            <Link to='/signup'><Button
+              variant='info'
+              className="auth-button"
+            >Signup</Button>
+            </Link>
+          </div>
         </div>
       </div>
     )
@@ -74,9 +86,9 @@ export class Home extends Component {
   }
 
   render() {
-    if (!this.props.isAuthenticated) {
-      return <Redirect to='/login' />
-    }
+    // if (!this.props.isAuthenticated) {
+    //   return <Redirect to='/login' />
+    // }
 
     return this.props.isAuthenticated
       ? this.renderNotes()

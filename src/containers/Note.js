@@ -4,8 +4,7 @@ import { Form, Container } from "react-bootstrap";
 import './Note.css'
 import LoaderButton from "../components/LoaderButton";
 import { API, Storage } from "aws-amplify";
-import { s3Upload } from "../libs/awsLib";
-import { Link } from "react-router-dom";
+import { s3Upload, s3Delete } from "../libs/awsLib";
 
 export class Note extends Component {
 
@@ -26,7 +25,7 @@ export class Note extends Component {
     try {
       const note = await API.get('notes', `/notes/${noteId}`)
       const { content, attachment } = note
-      const attachmentUrl = await Storage.vault.get(attachment)
+      const attachmentUrl = attachment && await Storage.vault.get(attachment)
 
       this.setState({
         content,
@@ -35,8 +34,9 @@ export class Note extends Component {
       })
 
     } catch (e) {
-      console.log(e)
-      alert(e.message)
+      console.log(e.response)
+      alert(e.response.data.error)
+      this.props.history.push('/')
     }
   }
 
@@ -56,6 +56,7 @@ export class Note extends Component {
 
   handleFileChange = (e) => {
     this.file = e.target.files[0]
+    console.log(this.file)
   }
 
   handleSubmit = async (e) => {
@@ -68,29 +69,29 @@ export class Note extends Component {
 
     this.setState({ isLoading: true })
 
-    // create note
+    // save note
     try {
       const attachment = this.file
         ? await s3Upload(this.file)
-        : null
+        : this.state.note.attachment
 
-      const result = await API.post('notes', '/notes', {
+      const { noteId } = this.props.match.params
+      await API.put('notes', `/notes/${noteId}`, {
         body: {
           attachment,
           content: this.state.content
         }
       })
 
-      console.log(result)
       this.props.history.push('/')
     } catch (e) {
-      console.log(e.message)
-      alert(e.message)
+      console.log(e.response)
+      alert(e.response.data.error)
       this.setState({ isLoading: false })
     }
   }
 
-  handleDelete = (e) => {
+  handleDelete = async (e) => {
     e.preventDefault()
     const confirmed = window.confirm(
       "Are you sure you want to delete this note?"
@@ -100,10 +101,20 @@ export class Note extends Component {
     }
 
     this.setState({ isDeleting: true })
-    setTimeout(() => {
-      console.log("delete")
+
+    const { noteId } = this.props.match.params
+    console.log(noteId)
+
+    try {
+      await s3Delete(this.state.note.attachment)
+      await API.del('notes', `/notes/${noteId}`)
+      this.props.history.push('/')
+    } catch (e) {
+      console.log(e.response)
+      alert(e.response.data.error)
       this.setState({ isDeleting: false })
-    }, 1000);
+    }
+
   }
 
   render() {
@@ -119,12 +130,14 @@ export class Note extends Component {
           </Form.Group>
           <Form.Group controlId="file">
             <Form.Label>Attachment</Form.Label>
-            <div className="attachment">
-              <a href={this.state.attachmentUrl}
-                rel="noopener noreferrer">
-                {this.formatFilename(this.state.note.attachment)}
-              </a>
-            </div>
+            {this.state.note.attachment &&
+              <div className="attachment">
+                <a href={this.state.attachmentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  {this.formatFilename(this.state.note.attachment)}
+                </a>
+              </div>}
             <Form.Control onChange={this.handleFileChange} type="file" />
           </Form.Group>
           <LoaderButton

@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import { Form, Row, Col, Container } from "react-bootstrap";
 import './Signup.css'
 import { Auth } from "aws-amplify";
-import { Redirect } from "react-router-dom";
 import LoaderButton from "../components/LoaderButton";
 
 export class Signup extends Component {
@@ -82,10 +81,6 @@ export class Signup extends Component {
   }
 
   render() {
-    if (this.props.isAuthenticated) {
-      return <Redirect to='/' />
-    }
-
     return (
       <Container className="Signup">
         {this.state.newUser
